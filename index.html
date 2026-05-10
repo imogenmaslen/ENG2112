@@ -1,0 +1,596 @@
+<!-- FYI this is entirely vibecoded -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shift Fitness Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f11;
+      --surface: #18181c;
+      --surface-2: #202026;
+      --border: rgba(255,255,255,0.07);
+      --border-strong: rgba(255,255,255,0.13);
+      --text: #f0eff4;
+      --text-muted: #7a7985;
+      --text-dim: #4a4955;
+      --accent: #c8f04a;
+      --accent-dim: rgba(200,240,74,0.12);
+      --accent-text: #0f0f11;
+      --fit: #4af0a0;
+      --fit-bg: rgba(74,240,160,0.1);
+      --caution: #f0c94a;
+      --caution-bg: rgba(240,201,74,0.1);
+      --risk: #f04a4a;
+      --risk-bg: rgba(240,74,74,0.1);
+      --mono: 'DM Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 10px;
+      --radius-lg: 16px;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Helvetica, Arial, sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.25rem 4rem;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .header-eyebrow {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Fields grid */
+    .fields-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+
+    .field-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .field-card:focus-within {
+      border-color: var(--border-strong);
+    }
+
+    .field-label {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .field-label svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--text-dim);
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* Slider */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 3px;
+      background: var(--surface-2);
+      border-radius: 2px;
+      outline: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      background: var(--accent);
+      border-radius: 50%; border: none; cursor: pointer;
+    }
+
+    .slider-value {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      min-width: 42px;
+      text-align: right;
+    }
+
+    .field-unit {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 6px;
+    }
+
+    /* Number input */
+    input[type="number"] {
+      width: 100%;
+      background: var(--surface-2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 20px;
+      font-weight: 500;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+      -moz-appearance: textfield; /* for firefox only ignore vsc error -JH */
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus { border-color: var(--border-strong); }
+
+    /* Select */
+    select {
+      width: 100%;
+      background: var(--surface-2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 400;
+      padding: 10px 12px;
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    select:focus { border-color: var(--border-strong); }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 500;
+      background: var(--accent);
+      color: var(--accent-text);
+      border: none;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      margin-bottom: 1.25rem;
+      transition: opacity 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .submit-btn:hover { opacity: 0.9; }
+    .submit-btn:active { transform: scale(0.99); }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .submit-btn svg {
+      width: 18px; height: 18px;
+      stroke: var(--accent-text);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Loading */
+    .loading {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-family: Helvetica, Arial, sans-serif;
+    }
+
+    .loading.visible { display: flex; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .spinner {
+      width: 15px; height: 15px;
+      border: 1.5px solid var(--border-strong);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* Error */
+    .error-card {
+      display: none;
+      background: var(--risk-bg);
+      border: 0.5px solid rgba(240,74,74,0.25);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-size: 13px;
+      color: var(--risk);
+      margin-bottom: 1rem;
+      font-family: Helvetica, Arial, sans-serif;
+    }
+
+    .error-card.visible { display: block; }
+
+    /* Result */
+    .result-card {
+      display: none;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      animation: fadeUp 0.3s ease;
+    }
+
+    .result-card.visible { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      gap: 1rem;
+    }
+
+    .result-label {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .result-score {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 42px;
+      font-weight: 500;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .result-score span {
+      font-size: 18px;
+      color: var(--text-dim);
+    }
+
+    .result-verdict {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+      margin-top: 4px;
+    }
+
+    .verdict-fit     { background: var(--fit-bg);     color: var(--fit); }
+    .verdict-caution { background: var(--caution-bg); color: var(--caution); }
+    .verdict-risk    { background: var(--risk-bg);    color: var(--risk); }
+
+    .result-bar-track {
+      height: 4px;
+      background: var(--surface-2);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .result-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .result-note {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 0.5px solid var(--border);
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 11px;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 2rem 1rem 3rem; }
+      .header h1 { font-size: 22px; }
+      .fields-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <header class="header">
+      <div class="header-eyebrow">ML fatigue model</div>
+      <h1>Shift fitness predictor</h1>
+      <p>Enter your health indicators below to get a fatigue risk assessment before your shift.</p>
+    </header>
+
+    <div class="fields-grid" id="fields-grid"></div>
+
+    <div class="error-card" id="error-card"></div>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span>running prediction...</span>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitPrediction()">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Predict shift fitness
+    </button>
+
+    <div class="result-card" id="result-card">
+      <div class="result-header">
+        <div>
+          <div class="result-label">Fatigue score</div>
+          <div class="result-score" id="result-score">—<span> / 100</span></div>
+        </div>
+        <div class="result-verdict" id="result-verdict"></div>
+      </div>
+      <div class="result-bar-track">
+        <div class="result-bar-fill" id="result-bar" style="width:0%"></div>
+      </div>
+      <div class="result-note" id="result-note"></div>
+    </div>
+
+
+  </div>
+
+  <script>
+    // ─── CONFIG ──────────────────────────────────────────────────────────────
+    const PREDICT_URL = "https://eng2112.onrender.com/predict";
+
+    // ─── FIELDS ──────────────────────────────────────────────────────────────
+    // Add / remove objects here to change the form. Nothing else needs editing.
+    //
+    // type: "range"  → slider   (needs min, max, step, default, unit)
+    // type: "number" → text box (needs min, max, default, unit)
+    // type: "select" → dropdown (needs options: [{value, label}], default)
+    //
+    const FIELDS = [
+      {
+        key: "sleep_hours",
+        label: "Sleep last night",
+        icon: `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`,
+        type: "range",
+        min: 0, max: 12, step: 0.5, default: 7,
+        unit: "hours",
+        format: v => parseFloat(v).toFixed(1) + " h"
+      },
+      {
+        key: "heart_rate_resting",
+        label: "Resting heart rate",
+        icon: `<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>`,
+        type: "number",
+        min: 30, max: 150, default: 65,
+        unit: "bpm"
+      },
+      {
+        key: "hours_since_last_shift",
+        label: "Hours since last shift",
+        icon: `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
+        type: "range",
+        min: 0, max: 48, step: 1, default: 16,
+        unit: "hours",
+        format: v => parseInt(v) + " h"
+      },
+      {
+        key: "shift_length",
+        label: "Upcoming shift length",
+        icon: `<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+        type: "range",
+        min: 4, max: 16, step: 0.5, default: 8,
+        unit: "hours",
+        format: v => parseFloat(v).toFixed(1) + " h"
+      }
+    ];
+    // ─────────────────────────────────────────────────────────────────────────
+
+    function buildFields() {
+      const grid = document.getElementById("fields-grid");
+      grid.innerHTML = "";
+      FIELDS.forEach(f => {
+        const card = document.createElement("div");
+        card.className = "field-card";
+        let inputHTML = "";
+
+        if (f.type === "range") {
+          const formatted = f.format ? f.format(f.default) : f.default;
+          inputHTML = `
+            <div class="slider-row">
+              <input type="range" id="${f.key}" min="${f.min}" max="${f.max}" step="${f.step}" value="${f.default}"
+                oninput="updateSlider('${f.key}', this.value)">
+              <span class="slider-value" id="${f.key}_val">${formatted}</span>
+            </div>
+            <div class="field-unit">${f.unit}</div>`;
+        } else if (f.type === "number") {
+          inputHTML = `
+            <input type="number" id="${f.key}" min="${f.min}" max="${f.max}" value="${f.default}" placeholder="${f.default}">
+            <div class="field-unit">${f.unit}</div>`;
+        } else if (f.type === "select") {
+          const opts = f.options.map(o =>
+            `<option value="${o.value}"${o.value === f.default ? " selected" : ""}>${o.label}</option>`
+          ).join("");
+          inputHTML = `<select id="${f.key}">${opts}</select>`;
+        }
+
+        card.innerHTML = `
+          <div class="field-label">
+            <svg viewBox="0 0 24 24">${f.icon}</svg>
+            ${f.label}
+          </div>
+          ${inputHTML}`;
+        grid.appendChild(card);
+      });
+    }
+
+    function updateSlider(key, value) {
+      const field = FIELDS.find(f => f.key === key);
+      const display = field && field.format ? field.format(value) : value;
+      document.getElementById(key + "_val").textContent = display;
+    }
+
+    function collectValues() {
+      const payload = {};
+      FIELDS.forEach(f => {
+        const el = document.getElementById(f.key);
+        payload[f.key] = f.type === "select" ? el.value : parseFloat(el.value);
+      });
+      return payload;
+    }
+
+    async function submitPrediction() {
+      const errCard   = document.getElementById("error-card");
+      const loading   = document.getElementById("loading");
+      const resultCard = document.getElementById("result-card");
+      const btn       = document.getElementById("submit-btn");
+
+      errCard.classList.remove("visible");
+      resultCard.classList.remove("visible");
+      loading.classList.add("visible");
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(PREDICT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(collectValues())
+        });
+        if (!res.ok) throw new Error("Server returned " + res.status);
+        const data = await res.json();
+        showResult(data.fatigue_score);
+      } catch (e) {
+        errCard.textContent = "⚠ " + (e.message || "Could not reach prediction server.");
+        errCard.classList.add("visible");
+      } finally {
+        loading.classList.remove("visible");
+        btn.disabled = false;
+      }
+    }
+
+    function showResult(score) {
+      const s = Math.round(Math.min(100, Math.max(0, score)));
+      document.getElementById("result-score").innerHTML = `${s}<span> / 100</span>`;
+
+      const bar     = document.getElementById("result-bar");
+      const verdict = document.getElementById("result-verdict");
+      const note    = document.getElementById("result-note");
+
+      bar.style.width = s + "%";
+
+      if (s <= 35) {
+        bar.style.background = "var(--fit)";
+        verdict.className = "result-verdict verdict-fit";
+        verdict.textContent = "fit for shift";
+        note.textContent = "Indicators are within normal range. Standard precautions apply.";
+      } else if (s <= 65) {
+        bar.style.background = "var(--caution)";
+        verdict.className = "result-verdict verdict-caution";
+        verdict.textContent = "caution";
+        note.textContent = "Some fatigue indicators are elevated. Monitor closely during shift.";
+      } else {
+        bar.style.background = "var(--risk)";
+        verdict.className = "result-verdict verdict-risk";
+        verdict.textContent = "high fatigue risk";
+        note.textContent = "Multiple risk factors detected. Review with a supervisor before proceeding.";
+      }
+
+      document.getElementById("result-card").classList.add("visible");
+    }
+
+    buildFields();
+  </script>
+</body>
+</html>
