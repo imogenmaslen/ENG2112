@@ -556,8 +556,8 @@
         const health = await fetch(PREDICT_URL.replace("/predict", "/health"));
         const hData = await health.json();
         const msg = hData.model_loaded
-        ? "Server is up but prediction failed."
-        : "Server is up but model is not loaded yet.";
+        ? "Model error. Service healthy."
+        : "Empty model. Service healthy";
         errCard.textContent = "⚠ " + msg;
   } catch {
     errCard.textContent = "⚠ Could not reach prediction server.";
