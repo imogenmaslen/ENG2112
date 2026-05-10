@@ -6,26 +6,35 @@ import numpy as np
 app = Flask(__name__)
 CORS(app)
 
-model = joblib.load("model.pkl")
+try:
+    model = joblib.load("model.pkl")
+except Exception:
+    model = None
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({
+        "status": "ok",
+        "model_loaded": model is not None
+    })
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    if model is None:
+        return jsonify({"error": "model not loaded"}), 503
+
     data = request.get_json()
-    
+
     features = np.array([[
         data["sleep_hours"],
         data["heart_rate_resting"],
         data["hours_since_last_shift"],
         data["shift_length"]
     ]])
-    
+
     score = model.predict_proba(features)[0][1] * 100
 
     return jsonify({"fatigue_score": round(float(score), 1)})
-
-@app.route("/health", methods=["GET"])
-def health():
-    return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
     app.run()
