@@ -552,9 +552,18 @@
         const data = await res.json();
         showResult(data.fatigue_score);
       } catch (e) {
-        errCard.textContent = "⚠ " + (e.message || "Could not reach prediction server.");
-        errCard.classList.add("visible");
-      } finally {
+        try {
+        const health = await fetch(PREDICT_URL.replace("/predict", "/health"));
+        const hData = await health.json();
+        const msg = hData.model_loaded
+        ? "Server is up but prediction failed."
+        : "Server is up but model is not loaded yet.";
+        errCard.textContent = "⚠ " + msg;
+  } catch {
+    errCard.textContent = "⚠ Could not reach prediction server.";
+  }
+  errCard.classList.add("visible");
+} finally {
         loading.classList.remove("visible");
         btn.disabled = false;
       }
